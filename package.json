@@ -2,7 +2,7 @@
   "name": "expresstutorial",
   "version": "1.0.0",
   "description": "express tutorial",
-  "main": "myFancierExpressServer.js",
+  "main": "mySSRServer.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon"
@@ -10,6 +10,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "ejs": "^3.1.8",
     "express": "^4.18.1",
     "helmet": "^5.1.0",
     "nodemon": "^2.0.16"

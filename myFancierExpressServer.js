@@ -19,7 +19,7 @@ app.get("/", rootSide);
 app.get("/users/", users);
 
 // POST
-app.post("/", (req, res, next) => {
+app.post("/users", (req, res, next) => {
 
     let name = '';
     let password = '';
@@ -36,11 +36,10 @@ app.post("/", (req, res, next) => {
         name: name,
         password: password
     }
-    postUser(user);
-    const message ="<h1>Hallo POST Root</h1>"
-    // console.log(req.body);
 
-    res.send(message);
+    postUser(user);
+
+    res.json({"authenticated": true, user: name});
 });
 
 app.listen(PORT, () => {

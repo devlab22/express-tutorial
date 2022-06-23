@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html langu="de">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Express Tutorial</title>
+    <link rel="stylesheet" type="text/css" href="styles.css">
+</head>
+
+<body>
+    <h1>Hallo Express EJS</h1>
+    <h1>Hallo <%= validatedUser %> mit Level <%= level %></h1>
+
+    <% for(let i=0; i < 5; i++) { %>
+
+        <% let text = 'ungerade';
+            if(i%2 === 0){
+                text = 'gerade';
+            } 
+         %>
+        <p>Hallo <%= validatedUser %>, <%= i %> : <%= text %> </p>
+    <% } %>
+
+<%= html %>
+
+    <script nonce="<%= cspNonce %>">
+        for(let i=0; i<5; i++){
+            document.write('<p>hallo script</p>')
+        }
+    </script>
+
+</body>
+
+</html>
