@@ -2,6 +2,8 @@ const express = require("express");
 const path = require("path");
 const app = express();
 
+const PORT = 1337;
+
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.get("/", (req, res) => {
@@ -24,6 +26,6 @@ app.delete("*", (req, res) => {
     res.send( "<h1>Hallo Express => DELETE</h1>");
 });
 
-app.listen(1337, () => {
-    console.log('Server listening on port 1337');
+app.listen(PORT, () => {
+    console.log(`Server listening on port ${PORT}`);
 });
