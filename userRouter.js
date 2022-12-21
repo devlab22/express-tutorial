@@ -1,9 +1,11 @@
 "use strict"
 const express = require("express");
 const router = express.Router();
+const usr = new Set();
 
 router.param('name', (req, res, next, name) => {
     console.log('set param:', name);
+    usr.add(name)
     next();
 });
 
@@ -16,7 +18,10 @@ function authenticateUser(req, res, next){
 router.use("/:name", authenticateUser);
 
 router.get("/", (req,res,next) => {
-    res.send("<h1>Hallo user</h1>");
+
+    const items = [];
+    usr.forEach(name => items.push(name));
+    res.json({users: items});
 });
 
 router.get("/:name", (req,res,next) => {

@@ -3,12 +3,13 @@ const path = require("path");
 const app = express();
 const helmet = require("helmet");
 const cookieparser = require("cookie-parser");
+const dirname = process.cwd();
 
 const PORT = 1337;
 
 app.use(helmet());
 app.use(cookieparser());
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(dirname, 'public')));
 app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 

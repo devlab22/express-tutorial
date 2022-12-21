@@ -1,13 +1,14 @@
 const express = require("express");
 const path = require("path");
 const app = express();
+const dirname = process.cwd();
 
 const PORT = 1337;
 
-app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.static(path.join(dirname, 'public')));
 
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(dirname, 'index.html'));
 });
 
 app.get("/users/", (req, res) => {

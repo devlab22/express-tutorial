@@ -12,7 +12,7 @@ router.get("/", (req,res,next) => {
 });
 
 router.get("/:channelName/", (req,res,next) => {
-    res.send(`<h1>Hallo ${req.params.channelName}</h1>`)
+    res.send(`<h1>Hallo channel ${req.params.channelName}</h1>`)
 });
 
 router.get("/:channelName/videos", (req,res,next) => {
