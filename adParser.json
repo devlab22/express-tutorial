@@ -1,0 +1,5 @@
+{
+    "ADMIN": ["*"],
+    "GLT": ["GLT01", "GLT02", "GLT03"],
+    "CARD": ["CARDIOLOGIE"]
+}

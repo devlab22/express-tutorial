@@ -16,22 +16,26 @@ app.use(express.urlencoded({extended: false}));
 // Router
 const channelRouter = require("./channelRouter");
 const userRouter = require("./userRouter");
+const apiRouter = require('./apiRouter');
+//const sqlRouter = require('./sqlRouter');
 
-app.use("/c/", channelRouter);
-app.use("/user/", userRouter);
+//app.use("/c/", channelRouter);
+//app.use("/user/", userRouter);
+app.use('/api/demo/', apiRouter)
+//app.use('/api/sql/', sqlRouter)
 
 app.get("/", (req,res,next) => {
     console.log('req.query:', req.query);
     console.log('req.cookies:', req.cookies);
-    const user = req.cookies['user'] ? req.cookies.user : '';
-    res.send(`<h1>Hallo Home ${user}</h1>`);
+   
+    res.send(`<h1>Hallo Home</h1>`);
 });
 
-app.post("/", (req, res, next) => {
+/* app.post("/", (req, res, next) => {
     res.cookie("user", req.body.name);
     //res.send(`<h1>Hallo Home POST</h1>`);
     res.json({name: req.body.name});
-})
+}) */
 
 app.listen(PORT, () => {
     console.log(`Server listening on port ${PORT}`);
