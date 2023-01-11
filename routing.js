@@ -21,7 +21,7 @@ const apiRouter = require('./apiRouter');
 
 //app.use("/c/", channelRouter);
 //app.use("/user/", userRouter);
-app.use('/api/demo/', apiRouter)
+app.use('/api/meraki/', apiRouter)
 //app.use('/api/sql/', sqlRouter)
 
 app.get("/", (req,res,next) => {
