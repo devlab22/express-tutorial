@@ -17,10 +17,10 @@ app.use(express.urlencoded({extended: false}));
 const channelRouter = require("./channelRouter");
 const userRouter = require("./userRouter");
 const apiRouter = require('./apiRouter');
-//const sqlRouter = require('./sqlRouter');
+const sqlRouter = require('./sqlRouter');
 
-//app.use("/c/", channelRouter);
-//app.use("/user/", userRouter);
+app.use("/c/", channelRouter);
+app.use("/user/", userRouter);
 app.use('/api/meraki/', apiRouter)
 //app.use('/api/sql/', sqlRouter)
 

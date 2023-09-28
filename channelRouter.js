@@ -19,4 +19,8 @@ router.get("/:channelName/videos", (req,res,next) => {
     res.send(`<h1>Hallo ${req.params.channelName} Videos</h1>`)
 });
 
+router.get("/:channelName/music", (req,res,next) => {
+    res.send(`<h1>Hallo ${req.params.channelName} Music</h1>`)
+});
+
 module.exports = router;
