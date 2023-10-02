@@ -6,6 +6,7 @@ const cookieparser = require("cookie-parser");
 const dirname = process.cwd();
 
 const PORT = 1337;
+const HOST = 'localhost'
 
 app.use(helmet());
 app.use(cookieparser());
@@ -17,11 +18,13 @@ app.use(express.urlencoded({extended: false}));
 const channelRouter = require("./channelRouter");
 const userRouter = require("./userRouter");
 const apiRouter = require('./apiRouter');
+const sapRouter = require('./apiSap')
 const sqlRouter = require('./sqlRouter');
 
 app.use("/c/", channelRouter);
 app.use("/user/", userRouter);
 app.use('/api/meraki/', apiRouter)
+app.use('/api/sap/', sapRouter)
 //app.use('/api/sql/', sqlRouter)
 
 app.get("/", (req,res,next) => {
@@ -37,6 +40,6 @@ app.get("/", (req,res,next) => {
     res.json({name: req.body.name});
 }) */
 
-app.listen(PORT, () => {
-    console.log(`Server listening on port ${PORT}`);
+app.listen(PORT, HOST, () => {
+    console.log(`Server listening on port ${HOST}:${PORT}`);
 });
