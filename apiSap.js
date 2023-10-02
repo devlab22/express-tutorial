@@ -16,10 +16,15 @@ async function getCountries(name = null) {
 
 }
 
-async function getSapUsers() {
+async function getSapUsers(token=null) {
 
-    const auth = 'dmVuZ2VsaGFyZDpzbGF2YTMx'
-   // const auth = Buffer.from(authorization).toString('base64')
+    const auth = token
+
+    const authorization = 'uname:password'
+    if (!auth){
+        auth  = Buffer.from(authorization).toString('base64')
+    } 
+    
     const { data } = await axios('http://lhd.lighthouse-it.de:8000/sap/opu/odata/sap/zve_userui5_srv/UserDataSet',
 
         {
@@ -76,6 +81,7 @@ router.get('/countries', (req, res, next) => {
 router.get('/sapusers', (req, res, next) => {
 
 
+    const token = req.query.token || null
     const result = {
         count: 0,
         code: 200,
@@ -89,7 +95,7 @@ router.get('/sapusers', (req, res, next) => {
         (async () => {
 
             try {
-                const data = await getSapUsers()
+                const data = await getSapUsers(token)
                 result.result = data;
                 result.count = data.length;
                 res.json(result);
