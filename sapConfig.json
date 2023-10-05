@@ -1,0 +1,5 @@
+{
+    "HOST": "http://lhd.lighthouse-it.de",
+    "PORT": "8000",
+    "SAP_CLIENT": "005"
+}

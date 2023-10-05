@@ -2,8 +2,8 @@
   "name": "expresstutorial",
   "version": "1.0.0",
   "description": "express tutorial",
-  "main": "routing.js",
-  "bin": "routing.js",
+  "main": "server.js",
+  "bin": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "dev": "nodemon"
@@ -22,6 +22,6 @@
     "sqlite3": "^5.1.4"
   },
   "pkg": {
-    "scripts": "apiRouter.js, Dashboard.js"
+    "scripts": ""
   }
 }
