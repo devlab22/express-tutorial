@@ -24,8 +24,7 @@ const sqlRouter = require('./sqlRouter');
 app.use("/c/", channelRouter);
 app.use("/user/", userRouter);
 app.use('/api/meraki/', apiRouter);
-
-//app.use('/api/sql/', sqlRouter)
+app.use('/api/sql/', sqlRouter)
 
 app.get("/", (req,res,next) => {
     console.log('req.query:', req.query);
@@ -33,12 +32,6 @@ app.get("/", (req,res,next) => {
    
     res.send(`<h1>Hallo Home</h1>`);
 });
-
-/* app.post("/", (req, res, next) => {
-    res.cookie("user", req.body.name);
-    //res.send(`<h1>Hallo Home POST</h1>`);
-    res.json({name: req.body.name});
-}) */
 
 app.listen(PORT, HOST, () => {
     console.log(`Server listening on port ${HOST}:${PORT}`);
