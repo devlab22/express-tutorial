@@ -29,9 +29,8 @@ router.use('/login', (req,res,next) => {
 
     const token = req.body.token || req.query.token || null
     const authorization = req.body.authorization || req.query.authorization || null
-    const host = req.body.host || req.query.host || null
-    const port = req.body.port || req.query.port || null
     const sap_client = req.body.sap_client || req.query.sap_client || null
+    const baseUrl = req.body.baseUrl || req.query.baseUrl || null
 
     const result = {
         status: 200,
@@ -46,8 +45,9 @@ router.use('/login', (req,res,next) => {
 
             try {
 
-                const db = SapDashboard.createInstance(token, authorization, host, port, sap_client)
-                
+                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client)
+                const data = await db.getPerson()
+                result.result = data
                 Dashboards.push(db) 
 
                 res.json(result);
@@ -123,6 +123,7 @@ router.get('/sapusers', (req, res, next) => {
     const token = req.query.token || null
     const result = {
         status: 200,
+        count: 0,
         server: 'express',
         router: 'sap',
         method: 'get sap users'
@@ -138,6 +139,7 @@ router.get('/sapusers', (req, res, next) => {
 
                 const data = await db.getSapUsers()
                 result.result = data;
+                result.count = data["d"]["results"].length
                 res.json(result);
             }
             catch (err) {
@@ -162,6 +164,7 @@ router.get('/events', (req,res,next) => {
     const result = {
         status: 200,
         server: 'express',
+        count: 0,
         router: 'sap',
         method: 'get events'
     }
@@ -176,6 +179,7 @@ router.get('/events', (req,res,next) => {
 
                 const data = await db.getEvents()
                 result.result = data;
+                result.count = data["RESULTS"].length;
                 res.json(result);
             }
             catch (err) {

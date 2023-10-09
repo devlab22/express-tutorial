@@ -2,14 +2,13 @@ const axios = require("axios");
 
 class SapDashboard {
 
-    constructor(token = null, authorization = null, host = null, port = null, sap_client = null) {
+    constructor(token = null, authorization = null, baseUrl=null, sap_client = null) {
         this.token = token;
         this.authorization = authorization
-        this.host = host
-        this.port = port
         this.sap_client = sap_client
         this.uname = ''
-
+        this.baseUrl = baseUrl
+        
         this.checkParams()
     }
 
@@ -23,19 +22,16 @@ class SapDashboard {
             throw new Error('set authorization', {status: 400})
         }
 
+        if (!this.baseUrl) {
+            this.baseUrl = "http://lhd.lighthouse-it.de:8000"
+            // throw new Error('set baseUrl', {status: 400})
+        }
+
         const value = Buffer.from(this.authorization, 'base64').toString('ascii')
         const values = value.split(':')
         this.uname = values[0]
 
-        if (!this.host) {
-            this.host = "http://lhd.lighthouse-it.de"
-            // throw new Error('set host', {status: 400})
-        }
-
-        if (!this.port) {
-            this.port = '8000'
-            // throw new Error('set port', {status: 400})
-        }
+        
 
         if (!this.sap_client) {
             this.sap_client = '005'
@@ -77,7 +73,7 @@ class SapDashboard {
         const headers = this.getHeaders();
         const params = this.getParams();
 
-        const { data } = await axios(`${this.host}:${this.port}/sap/opu/odata/sap/zve_userui5_srv/UserDataSet`,
+        const { data } = await axios(`${this.baseUrl}/sap/opu/odata/sap/zve_userui5_srv/UserDataSet`,
             {
                 params: params,
                 headers: headers
@@ -92,12 +88,12 @@ class SapDashboard {
         const headers = this.getHeaders();
         const params = this.getParams();
 
-        params.view = 'PERSON'
+        params.view = 'EVENTS'
         params.begda = begda
         params.endda = endda
         params._FUNCTION = 'Z_GET_CUSTOMIZING'
 
-        const { data } = await axios('http://lhd.lighthouse-it.de:8000/sap/bc/webrfc',
+        const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
             {
                 params: params,
                 headers: headers
@@ -108,9 +104,30 @@ class SapDashboard {
 
     }
 
-    static createInstance(token, authorization, host = null, port = null, sap_client = null) {
+    async getPerson(begda = '20200101', endda = '20240101') {
 
-        const db = new SapDashboard(token, authorization, host, port, sap_client)
+        const headers = this.getHeaders();
+        const params = this.getParams();
+
+        params.view = 'PERSON'
+        params.begda = begda
+        params.endda = endda
+        params._FUNCTION = 'Z_GET_CUSTOMIZING'
+
+        const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
+            {
+                params: params,
+                headers: headers
+            }
+        )
+
+        return data
+
+    }
+
+    static createInstance(token, authorization, baseUrl=null, sap_client = null) {
+
+        const db = new SapDashboard(token, authorization, baseUrl, sap_client)
         return db;
     }
 }

@@ -1,5 +1,4 @@
 {
-    "HOST": "http://lhd.lighthouse-it.de",
-    "PORT": "8000",
-    "SAP_CLIENT": "005"
+    "BASE_URLS": ["http://lhd.lighthouse-it.de:8000"],
+    "SAP_CLIENTS": ["005", "015"]
 }
