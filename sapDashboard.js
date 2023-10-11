@@ -2,14 +2,27 @@ const axios = require("axios");
 
 class SapDashboard {
 
-    constructor(token = null, authorization = null, baseUrl=null, sap_client = null) {
+    constructor(token = null, authorization = null, baseUrl=null, sap_client = null, timeout=60) {
         this.token = token;
         this.authorization = authorization
         this.sap_client = sap_client
         this.uname = ''
         this.baseUrl = baseUrl
+        this.timeout = timeout
         
         this.checkParams()
+
+        this.loginTime = SapDashboard.getDateTime(new Date())
+        this.updateLastActionTime()
+        
+    }
+
+    updateLastActionTime(){
+        var date = new Date();
+        var d = new Date();
+        this.lastActionTime = SapDashboard.getDateTime(date)
+        d.setMinutes(date.getMinutes() + this.timeout)
+        this.logoutTime = SapDashboard.getDateTime(d)
     }
 
     checkParams() {
@@ -91,7 +104,7 @@ class SapDashboard {
         params.view = 'EVENTS'
         params.begda = begda
         params.endda = endda
-        params._FUNCTION = 'Z_GET_CUSTOMIZING'
+        params._FUNCTION = 'Z_EVENTS_MGR'
 
         const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
             {
@@ -112,7 +125,7 @@ class SapDashboard {
         params.view = 'PERSON'
         params.begda = begda
         params.endda = endda
-        params._FUNCTION = 'Z_GET_CUSTOMIZING'
+        params._FUNCTION = 'Z_EVENTS_MGR'
 
         const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
             {
@@ -125,10 +138,23 @@ class SapDashboard {
 
     }
 
-    static createInstance(token, authorization, baseUrl=null, sap_client = null) {
+    static createInstance(token, authorization, baseUrl=null, sap_client = null, timeout=60) {
 
-        const db = new SapDashboard(token, authorization, baseUrl, sap_client)
+        const db = new SapDashboard(token, authorization, baseUrl, sap_client, timeout)
         return db;
+    }
+
+    static getDateTime(currentDate) {
+
+        const datetime =
+            currentDate.getFullYear() + "/"
+            + (currentDate.getMonth() + 1) + "/"
+            + (currentDate.getDate()) + ", "
+            + currentDate.getHours() + ":"
+            + currentDate.getMinutes() + ":"
+            + currentDate.getSeconds();
+
+        return datetime;
     }
 }
 

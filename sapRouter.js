@@ -4,6 +4,35 @@ const router = express.Router();
 const SapDashboard = require("./sapDashboard")
 
 let Dashboards = []
+let isTimeoutOn = false;
+const timeOut = 1000 * 60 * 60;
+
+function setDefaultParams( result = {}, db){
+    result.uname = db.uname
+    result.loginTime = db.loginTime
+    result.timeOut = `${db.timeout} Min.`
+    result.lastActionTime = db.lastActionTime
+    result.logOutTime = db.logoutTime
+   
+}
+
+function onTimeOut() {
+    console.log('timeout', new Date())
+
+    for (var index = 0; index < Dashboards.length; index++) {
+
+        const logOut = new Date(Dashboards[index].logoutTime);
+        var now = new Date()
+
+        if (now > logOut) {
+            Dashboards = Dashboards.filter(item => item.token !== Dashboards[index]);
+
+        }
+
+    }
+
+    setTimeout(onTimeOut, timeOut);
+}
 
 function getDashboard(token = null){
 
@@ -31,12 +60,18 @@ router.use('/login', (req,res,next) => {
     const authorization = req.body.authorization || req.query.authorization || null
     const sap_client = req.body.sap_client || req.query.sap_client || null
     const baseUrl = req.body.baseUrl || req.query.baseUrl || null
+    const tOut = req.body.timeout || req.query.timeout || 60
 
-    const result = {
+    var result = {
         status: 200,
         server: 'express',
         router: 'sap',
         method: 'Login'
+    }
+
+    if (!isTimeoutOn) {
+        isTimeoutOn = true;
+        setTimeout(onTimeOut, timeOut)
     }
 
     try {
@@ -45,9 +80,11 @@ router.use('/login', (req,res,next) => {
 
             try {
 
-                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client)
+                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client, tOut)
                 const data = await db.getPerson()
+                setDefaultParams(result, db)
                 result.result = data
+                               
                 Dashboards.push(db) 
 
                 res.json(result);
@@ -88,7 +125,7 @@ router.get('/logout', (req,res,next) => {
 router.get('/countries', (req, res, next) => {
 
     
-    const countryName = req.query.name || null
+    const countryName = req.query.name || req.body.name || null
     const result = {
         count: 0,
         status: 200,
@@ -120,8 +157,8 @@ router.get('/countries', (req, res, next) => {
 router.get('/sapusers', (req, res, next) => {
 
 
-    const token = req.query.token || null
-    const result = {
+    const token = req.query.token || req.body.token || null
+    var result = {
         status: 200,
         count: 0,
         server: 'express',
@@ -138,8 +175,10 @@ router.get('/sapusers', (req, res, next) => {
                 const db = getDashboard(token)
 
                 const data = await db.getSapUsers()
+                db.updateLastActionTime()
+                setDefaultParams(result, db)
                 result.result = data;
-                result.count = data["d"]["results"].length
+                result.count = data["d"]["results"].length               
                 res.json(result);
             }
             catch (err) {
@@ -160,8 +199,8 @@ router.get('/sapusers', (req, res, next) => {
 
 router.get('/events', (req,res,next) => {
 
-    const token = req.query.token || null
-    const result = {
+    const token = req.query.token || req.body.token || null
+    var result = {
         status: 200,
         server: 'express',
         count: 0,
@@ -178,8 +217,11 @@ router.get('/events', (req,res,next) => {
                 const db = getDashboard(token)
 
                 const data = await db.getEvents()
+                db.updateLastActionTime()
+                setDefaultParams(result, db)
                 result.result = data;
                 result.count = data["RESULTS"].length;
+                
                 res.json(result);
             }
             catch (err) {

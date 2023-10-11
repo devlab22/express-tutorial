@@ -36,7 +36,7 @@ app.get("/", (req,res,next) => {
     console.log('req.query:', req.query);
     console.log('req.cookies:', req.cookies);
    
-    res.send(`<h1>My Server</h1>`);
+    res.send(`<h1>My SAP Web Server</h1>`);
 });
 
 app.listen(PORT, HOST, () => {

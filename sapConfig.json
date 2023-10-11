@@ -1,4 +1,5 @@
 {
     "BASE_URLS": ["http://lhd.lighthouse-it.de:8000"],
-    "SAP_CLIENTS": ["005", "015"]
+    "SAP_CLIENTS": ["005", "015"],
+    "TIMEOUT": 60
 }
