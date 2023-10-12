@@ -25,7 +25,7 @@ function onTimeOut() {
         var now = new Date()
 
         if (now > logOut) {
-            Dashboards = Dashboards.filter(item => item.token !== Dashboards[index]);
+            Dashboards = Dashboards.filter(item => item.token !== Dashboards[index].token);
 
         }
 
@@ -38,7 +38,20 @@ function getDashboard(token = null){
 
     const db = Dashboards.find(item => item.token === token)
 
-    if (!db){
+    if (db){
+
+        const logOut = new Date(db.logoutTime);
+        var now = new Date();
+
+        if(now <= logOut){
+            db.updateLastActionTime()
+        }
+        else{
+            Dashboards = Dashboards.filter(item => item.token !== token)
+            throw new Error(`user is not login => timeout`)
+        }
+    }
+    else{
         throw new Error('user is not authorized', {status: 400})
     }
     return db;
@@ -175,7 +188,6 @@ router.get('/sapusers', (req, res, next) => {
                 const db = getDashboard(token)
 
                 const data = await db.getSapUsers()
-                db.updateLastActionTime()
                 setDefaultParams(result, db)
                 result.result = data;
                 result.count = data["d"]["results"].length               
@@ -217,7 +229,6 @@ router.get('/events', (req,res,next) => {
                 const db = getDashboard(token)
 
                 const data = await db.getEvents()
-                db.updateLastActionTime()
                 setDefaultParams(result, db)
                 result.result = data;
                 result.count = data["RESULTS"].length;

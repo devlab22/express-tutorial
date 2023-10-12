@@ -8,7 +8,7 @@ class SapDashboard {
         this.sap_client = sap_client
         this.uname = ''
         this.baseUrl = baseUrl
-        this.timeout = timeout
+        this.timeout = parseInt(timeout)
         
         this.checkParams()
 
