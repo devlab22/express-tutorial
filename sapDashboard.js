@@ -9,6 +9,18 @@ class SapDashboard {
         this.uname = ''
         this.baseUrl = baseUrl
         this.timeout = parseInt(timeout)
+        this.person = {
+            plvar: '',
+            otype: '',
+            realo: '',
+            short: '',
+            stext: '',
+            org_otype: '',
+            org_objid: '',
+            org_short: '',
+            org_stext: '',
+            admin: false
+        }
         
         this.checkParams()
 
@@ -134,6 +146,17 @@ class SapDashboard {
             }
         )
 
+        this.person.plvar = data['RESULTS']['PLVAR']
+        this.person.otype = data['RESULTS']['OTYPE']
+        this.person.realo = data['RESULTS']['REALO']
+        this.person.short = data['RESULTS']['SHORT']
+        this.person.stext = data['RESULTS']['STEXT']
+        this.person.org_otype = data['RESULTS']['ORG_OTYPE']
+        this.person.org_objid = data['RESULTS']['ORG_OBJID']
+        this.person.org_short = data['RESULTS']['ORG_SHORT']
+        this.person.org_stext = data['RESULTS']['ORG_STEXT']
+        this.person.admin = data['RESULTS']['ADMIN'] == 'X' ? true : false
+        
         return data
 
     }
