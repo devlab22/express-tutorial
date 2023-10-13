@@ -13,6 +13,8 @@ function setDefaultParams( result = {}, db){
     result.timeOut = `${db.timeout} Min.`
     result.lastActionTime = db.lastActionTime
     result.logOutTime = db.logoutTime
+    result.sbegd = db.begda
+    result.sendd = db.endda
    
 }
 
@@ -74,6 +76,8 @@ router.use('/login', (req,res,next) => {
     const sap_client = req.body.sap_client || req.query.sap_client || null
     const baseUrl = req.body.baseUrl || req.query.baseUrl || null
     const tOut = req.body.timeout || req.query.timeout || 60
+    const begda = req.body.begda || req.query.begda || '20200101'
+    const endda = req.body.endda || req.query.endda || '20500101'
 
     var result = {
         status: 200,
@@ -93,7 +97,7 @@ router.use('/login', (req,res,next) => {
 
             try {
 
-                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client, tOut)
+                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client, tOut, begda, endda)
                 const data = await db.getPerson()
                 setDefaultParams(result, db)
                 result.result = data
@@ -232,6 +236,50 @@ router.get('/events', (req,res,next) => {
                 setDefaultParams(result, db)
                 result.result = data;
                 result.count = data["RESULTS"].length;
+                
+                res.json(result);
+            }
+            catch (err) {
+                result.msg = err.message
+                result.status = 400
+                res.json(result);
+            }
+
+        })()
+    }
+    catch (err) {
+        result.msg = err.message
+        result.status = 400
+        res.json(result);
+    }
+})
+
+router.get('/event', (req,res,next) => {
+
+    const token = req.query.token || req.body.token || null
+    const otype = req.query.otype || req.body.otype || 'E'
+    const objid = req.query.objid || req.body.objid || null
+
+    var result = {
+        status: 200,
+        server: 'express',
+        count: 0,
+        router: 'sap',
+        method: 'get event'
+    }
+
+    try {
+
+        (async () => {          
+
+            try {
+
+                const db = getDashboard(token)
+
+                const data = await db.getEvent(otype, objid)
+                setDefaultParams(result, db)
+                result.result = data;
+                result.count = 1;
                 
                 res.json(result);
             }

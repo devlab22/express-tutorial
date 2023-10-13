@@ -2,13 +2,15 @@ const axios = require("axios");
 
 class SapDashboard {
 
-    constructor(token = null, authorization = null, baseUrl=null, sap_client = null, timeout=60) {
+    constructor(token = null, authorization = null, baseUrl=null, sap_client = null, timeout=60, begda=null, endda=null) {
         this.token = token;
         this.authorization = authorization
         this.sap_client = sap_client
         this.uname = ''
         this.baseUrl = baseUrl
         this.timeout = parseInt(timeout)
+        this.begda = begda
+        this.endda = endda
         this.person = {
             plvar: '',
             otype: '',
@@ -54,15 +56,31 @@ class SapDashboard {
 
         const value = Buffer.from(this.authorization, 'base64').toString('ascii')
         const values = value.split(':')
-        this.uname = values[0]
-
-        
+        this.uname = values[0]       
 
         if (!this.sap_client) {
             this.sap_client = '005'
             //throw new Error('set sap client', {status: 400})
         }
 
+        if(!this.begda){
+            var currentDate = new Date()
+            //this.begda = currentDate.toISOString().split('T')[0].replace('-', '')
+            this.begda = '' + currentDate.getFullYear() + 
+            + ("0" + (currentDate.getMonth() + 1)).slice(-2) 
+            + (currentDate.getDate())
+        }
+
+        if(!this.endda){
+            var d = new Date()
+            var date = new Date()
+            date.setMonth(d.getMonth() + 3)
+            this.endda = '' + date.getFullYear()  
+                        + ("0" + (date.getMonth() + 1)).slice(-2)
+                        + ( date.getDate() )
+            
+            
+        }
 
     }
 
@@ -108,15 +126,18 @@ class SapDashboard {
 
     }
 
-    async getEvents(begda = '20200101', endda = '20240101') {
+    async getEvents() {
 
         const headers = this.getHeaders();
         const params = this.getParams();
 
         params.view = 'EVENTS'
-        params.begda = begda
-        params.endda = endda
+        params.begda = this.begda
+        params.endda = this.endda
         params._FUNCTION = 'Z_EVENTS_MGR'
+        params.plvar = this.person.plvar
+        params.otype = this.person.otype
+        params.realo = this.person.realo
 
         const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
             {
@@ -129,14 +150,42 @@ class SapDashboard {
 
     }
 
-    async getPerson(begda = '20200101', endda = '20240101') {
+    async getEvent(otype='E', objid=null) {
+
+        if(!objid){
+            throw new Error('set objid', {status: 400})
+        }
+
+        const headers = this.getHeaders();
+        const params = this.getParams();
+
+        params.view = 'EVENT'
+        params.begda = this.begda
+        params.endda = this.endda
+        params._FUNCTION = 'Z_EVENTS_MGR'
+        params.plvar = this.person.plvar
+        params.otype = otype
+        params.objid = objid
+
+        const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
+            {
+                params: params,
+                headers: headers
+            }
+        )
+
+        return data
+
+    }
+
+    async getPerson() {
 
         const headers = this.getHeaders();
         const params = this.getParams();
 
         params.view = 'PERSON'
-        params.begda = begda
-        params.endda = endda
+        params.begda = this.begda
+        params.endda = this.endda
         params._FUNCTION = 'Z_EVENTS_MGR'
 
         const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
@@ -161,9 +210,9 @@ class SapDashboard {
 
     }
 
-    static createInstance(token, authorization, baseUrl=null, sap_client = null, timeout=60) {
+    static createInstance(token, authorization, baseUrl=null, sap_client = null, timeout=60, begda=null, endda=null) {
 
-        const db = new SapDashboard(token, authorization, baseUrl, sap_client, timeout)
+        const db = new SapDashboard(token, authorization, baseUrl, sap_client, timeout, begda, endda)
         return db;
     }
 
