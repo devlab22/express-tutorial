@@ -5,7 +5,7 @@ const SapDashboard = require("./sapDashboard")
 
 let Dashboards = []
 let isTimeoutOn = false;
-const timeOut = 1000 * 60 * 60;
+const timeOut = 1000 * 60 * 1;
 
 function setDefaultParams( result = {}, db){
     result.uname = db.uname
@@ -19,13 +19,14 @@ function setDefaultParams( result = {}, db){
 }
 
 function onTimeOut() {
-    console.log('timeout', new Date())
+
+    var now = new Date()
+    console.log('timeout', now)
 
     for (var index = 0; index < Dashboards.length; index++) {
 
         const logOut = new Date(Dashboards[index].logoutTime);
-        var now = new Date()
-
+       
         if (now > logOut) {
             Dashboards = Dashboards.filter(item => item.token !== Dashboards[index].token);
 
