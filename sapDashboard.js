@@ -1,16 +1,18 @@
 const axios = require("axios");
+const crypto = require("crypto")
 
 class SapDashboard {
-
-    constructor(token = null, authorization = null, baseUrl=null, sap_client = null, timeout=60, begda=null, endda=null) {
-        this.token = token;
-        this.authorization = authorization
-        this.sap_client = sap_client
+    
+    constructor( params={}) {
+        this.token = crypto.randomUUID();
+        this.authorization = params['authorization'] || null
+        this.sap_client = params['sap_client'] || null
         this.uname = ''
-        this.baseUrl = baseUrl
+        this.baseUrl = params['baseUrl'] || null
+        var timeout = params['timeout'] || 60
         this.timeout = parseInt(timeout)
-        this.begda = begda
-        this.endda = endda
+        this.begda = params['begda'] || '19000101'
+        this.endda = params['endda'] || '99991231'
         this.person = {
             plvar: '',
             otype: '',
@@ -210,9 +212,9 @@ class SapDashboard {
 
     }
 
-    static createInstance(token, authorization, baseUrl=null, sap_client = null, timeout=60, begda=null, endda=null) {
+    static createInstance(params={}) {
 
-        const db = new SapDashboard(token, authorization, baseUrl, sap_client, timeout, begda, endda)
+        const db = new SapDashboard(params)
         return db;
     }
 

@@ -5,9 +5,9 @@ const SapDashboard = require("./sapDashboard")
 
 let Dashboards = []
 let isTimeoutOn = false;
-const timeOut = 1000 * 60 * 1;
+const timeOut = 1000 * 60 * 15;
 
-function setDefaultParams( result = {}, db){
+function setDefaultParams(result = {}, db) {
     result.uname = db.uname
     result.loginTime = db.loginTime
     result.timeOut = `${db.timeout} Min.`
@@ -15,18 +15,18 @@ function setDefaultParams( result = {}, db){
     result.logOutTime = db.logoutTime
     result.sbegd = db.begda
     result.sendd = db.endda
-   
+    result.token = db.token
 }
 
 function onTimeOut() {
 
     var now = new Date()
-    console.log('timeout', now)
+    // console.log('timeout', now)
 
     for (var index = 0; index < Dashboards.length; index++) {
 
         const logOut = new Date(Dashboards[index].logoutTime);
-       
+
         if (now > logOut) {
             Dashboards = Dashboards.filter(item => item.token !== Dashboards[index].token);
 
@@ -37,25 +37,25 @@ function onTimeOut() {
     setTimeout(onTimeOut, timeOut);
 }
 
-function getDashboard(token = null){
+function getDashboard(token = null) {
 
     const db = Dashboards.find(item => item.token === token)
 
-    if (db){
+    if (db) {
 
         const logOut = new Date(db.logoutTime);
         var now = new Date();
 
-        if(now <= logOut){
+        if (now <= logOut) {
             db.updateLastActionTime()
         }
-        else{
+        else {
             Dashboards = Dashboards.filter(item => item.token !== token)
             throw new Error(`user is not login => timeout`)
         }
     }
-    else{
-        throw new Error('user is not authorized', {status: 400})
+    else {
+        throw new Error('user is not authorized', { status: 400 })
     }
     return db;
 }
@@ -70,9 +70,9 @@ router.get('/', (req, res, next) => {
     })
 })
 
-router.use('/login', (req,res,next) => {
+router.post('/login', async (req, res, next) => {
 
-    const token = req.body.token || req.query.token || null
+
     const authorization = req.body.authorization || req.query.authorization || null
     const sap_client = req.body.sap_client || req.query.sap_client || null
     const baseUrl = req.body.baseUrl || req.query.baseUrl || null
@@ -87,6 +87,15 @@ router.use('/login', (req,res,next) => {
         method: 'Login'
     }
 
+    const params = {
+        authorization,
+        sap_client,
+        baseUrl,
+        timeout: tOut,
+        begda,
+        endda
+    }
+
     if (!isTimeoutOn) {
         isTimeoutOn = true;
         setTimeout(onTimeOut, timeOut)
@@ -94,26 +103,24 @@ router.use('/login', (req,res,next) => {
 
     try {
 
-        (async () => {
+        try {
 
-            try {
+            const db = SapDashboard.createInstance(params)
+            const data = await db.getPerson()
+            setDefaultParams(result, db)
+            result.result = data
 
-                const db = SapDashboard.createInstance(token, authorization, baseUrl, sap_client, tOut, begda, endda)
-                const data = await db.getPerson()
-                setDefaultParams(result, db)
-                result.result = data
-                               
-                Dashboards.push(db) 
+            Dashboards.push(db)
 
-                res.json(result);
-            }
-            catch (err) {
-                result.msg = err.message
-                result.status = err.status
-                res.json(result);
-            }
+            res.json(result);
+        }
+        catch (err) {
+            result.msg = err.message
+            result.status = err.status
+            res.json(result);
+        }
 
-        })()
+
     }
     catch (err) {
         result.msg = err.message
@@ -123,7 +130,7 @@ router.use('/login', (req,res,next) => {
 
 })
 
-router.get('/logout', (req,res,next) => {
+router.get('/logout', (req, res, next) => {
 
     const token = req.body.token || req.query.token || null
 
@@ -140,9 +147,9 @@ router.get('/logout', (req,res,next) => {
 
 })
 
-router.get('/countries', (req, res, next) => {
+router.get('/countries', async (req, res, next) => {
 
-    
+
     const countryName = req.query.name || req.body.name || null
     const result = {
         count: 0,
@@ -154,14 +161,10 @@ router.get('/countries', (req, res, next) => {
 
     try {
 
-        (async () => {
-
-            const data = await SapDashboard.getCountries(countryName)
-            result.result = data;
-            result.count = data.length;
-            res.json(result);
-
-        })()
+        const data = await SapDashboard.getCountries(countryName)
+        result.result = data;
+        result.count = data.length;
+        res.json(result);
 
     }
     catch (err) {
@@ -172,7 +175,7 @@ router.get('/countries', (req, res, next) => {
 
 })
 
-router.get('/sapusers', (req, res, next) => {
+router.get('/sapuser', async (req, res, next) => {
 
 
     const token = req.query.token || req.body.token || null
@@ -186,25 +189,22 @@ router.get('/sapusers', (req, res, next) => {
 
     try {
 
-        (async () => {
+        try {
 
-            try {
+            const db = getDashboard(token)
 
-                const db = getDashboard(token)
+            const data = await db.getSapUsers()
+            setDefaultParams(result, db)
+            result.result = data;
+            result.count = data["d"]["results"].length
+            res.json(result);
+        }
+        catch (err) {
+            result.msg = err.message
+            result.status = 400
+            res.json(result);
+        }
 
-                const data = await db.getSapUsers()
-                setDefaultParams(result, db)
-                result.result = data;
-                result.count = data["d"]["results"].length               
-                res.json(result);
-            }
-            catch (err) {
-                result.msg = err.message
-                result.status = 400
-                res.json(result);
-            }
-
-        })()
     }
     catch (err) {
         result.msg = err.message
@@ -214,48 +214,7 @@ router.get('/sapusers', (req, res, next) => {
 
 })
 
-router.get('/events', (req,res,next) => {
-
-    const token = req.query.token || req.body.token || null
-    var result = {
-        status: 200,
-        server: 'express',
-        count: 0,
-        router: 'sap',
-        method: 'get events'
-    }
-
-    try {
-
-        (async () => {          
-
-            try {
-
-                const db = getDashboard(token)
-
-                const data = await db.getEvents()
-                setDefaultParams(result, db)
-                result.result = data;
-                result.count = data["RESULTS"].length;
-                
-                res.json(result);
-            }
-            catch (err) {
-                result.msg = err.message
-                result.status = 400
-                res.json(result);
-            }
-
-        })()
-    }
-    catch (err) {
-        result.msg = err.message
-        result.status = 400
-        res.json(result);
-    }
-})
-
-router.get('/event', (req,res,next) => {
+router.get('/event', async (req, res, next) => {
 
     const token = req.query.token || req.body.token || null
     const otype = req.query.otype || req.body.otype || 'E'
@@ -271,26 +230,31 @@ router.get('/event', (req,res,next) => {
 
     try {
 
-        (async () => {          
+        try {
 
-            try {
+            const db = getDashboard(token)
+            var data = null
 
-                const db = getDashboard(token)
-
-                const data = await db.getEvent(otype, objid)
-                setDefaultParams(result, db)
-                result.result = data;
+            if (objid) {
+                data = await db.getEvent(otype, objid)
                 result.count = 1;
-                
-                res.json(result);
             }
-            catch (err) {
-                result.msg = err.message
-                result.status = 400
-                res.json(result);
+            else {
+                data = await db.getEvents()
+                result.count = data["RESULTS"].length;
             }
 
-        })()
+            setDefaultParams(result, db)
+            result.result = data;
+
+            res.json(result);
+        }
+        catch (err) {
+            result.msg = err.message
+            result.status = 400
+            res.json(result);
+        }
+
     }
     catch (err) {
         result.msg = err.message
