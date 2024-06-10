@@ -60,6 +60,15 @@ function getDashboard(token = null) {
     return db;
 }
 
+function printParams(req,res){
+
+    console.log('request')
+    console.log('query')
+    console.log(req.query)
+    console.log('body')
+    console.log(req.body)
+    console.log(req)
+}
 router.get('/', (req, res, next) => {
 
     res.json({
@@ -72,13 +81,17 @@ router.get('/', (req, res, next) => {
 
 router.post('/login', async (req, res, next) => {
 
-
-    const authorization = req.body.authorization || req.query.authorization || null
+    var authorization = req.body.authorization || req.query.authorization || null
     const sap_client = req.body.sap_client || req.query.sap_client || null
     const baseUrl = req.body.baseUrl || req.query.baseUrl || null
     const tOut = req.body.timeout || req.query.timeout || 60
     const begda = req.body.begda || req.query.begda || '20200101'
     const endda = req.body.endda || req.query.endda || '20500101'
+    if(!authorization){
+        const auth = req.headers['authorization'] || ""
+        const aAuth = auth.split(' ')
+        authorization = aAuth[1]
+    }
 
     var result = {
         status: 200,
@@ -220,7 +233,7 @@ router.get('/event', async (req, res, next) => {
     const otype = req.query.otype || req.body.otype || 'E'
     const objid = req.query.objid || req.body.objid || null
 
-    var result = {
+    const result = {
         status: 200,
         server: 'express',
         count: 0,
@@ -263,6 +276,39 @@ router.get('/event', async (req, res, next) => {
     }
 })
 
+router.post('/endpointinfo', async(req,res) => {
+
+    const token = req.body.token || null
+    const params = {}
+
+    for (const [key, value] of Object.entries(req.body)) {
+        params[key] = value
+    }
+
+    const result = {
+        status: 400,
+        server: 'express',
+        router: 'sap',
+        method: 'set endpoint info',
+        msg: ""
+    }
+    
+    delete params.token
+
+    try{
+        const db = getDashboard(token)
+        await db.setSAPInfo(params)
+
+        result.status = 200
+        res.json(result);
+    }
+    catch(err){
+        result.msg = err.message
+        result.status = 400
+        res.json(result);
+    }
+
+})
 
 
 module.exports = router;
