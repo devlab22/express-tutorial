@@ -1,5 +1,6 @@
 const axios = require("axios");
 const crypto = require("crypto")
+const xmlParser = require('xml2json')
 
 class SapDashboard {
 
@@ -13,6 +14,8 @@ class SapDashboard {
         this.timeout = parseInt(timeout)
         this.begda = params['begda'] || '19000101'
         this.endda = params['endda'] || '99991231'
+        this.soapDest = null
+        this.WSDL = null
         this.person = {
             plvar: '',
             otype: '',
@@ -96,8 +99,7 @@ class SapDashboard {
 
         return {
             'Authorization': `Basic ${this.authorization}`,
-            'Accept': 'application/json',
-            'CONTENT_TYPE': 'application/json'
+            'Accept': 'application/json'
         }
     }
 
@@ -231,6 +233,75 @@ class SapDashboard {
             params: params,
             headers: headers
         })
+
+        return data
+    }
+
+    async getWSDL() {
+
+        const headers = this.getHeaders();
+
+        headers.Accept = 'text/xml'
+        headers['Content-Type'] = 'text/xml'
+
+        const { data } = await axios(`${this.baseUrl}/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/rfc/lighth/bshservice/${this.sap_client}/bshservice/bshservbind`,
+            {
+                headers: headers
+            }
+        )
+
+        const result = xmlParser.toJson(data)
+        const tmp = JSON.parse(result)
+        this.WSDL = tmp
+        return tmp
+    }
+
+    getWSDLAttribute(name = null) {
+
+        var result = null
+
+        if (this.WSDL) {
+
+            if (name === 'location') {
+                result = this.WSDL['wsdl:definitions']['wsdl:service']['wsdl:port']['soap:address']['location']
+            }
+        }
+
+        return result
+    }
+
+    async getCustomizing() {
+
+        const headers = this.getHeaders();
+
+        headers.Accept = 'text/xml'
+        headers['Content-Type'] = 'text/xml'
+
+        const params = {}
+
+        const { data } = await axios(`${this.baseUrl}/sap/bc/srt/rfc/lighth/bshservice/${this.sap_client}/bshservice/bshservbind/getCustomizingRequest`,
+            {
+                params: params,
+                headers: headers
+            }
+        )
+
+        const result = xmlParser.toJson(data)
+        const tmp = JSON.parse(result)
+        return tmp
+    }
+
+    async getPersonUI() {
+
+        const headers = this.getHeaders();
+        const params = this.getParams();
+
+        const { data } = await axios(`${this.baseUrl}/sap/opu/odata/LIGHTH/PARTIC_MANAGEMENT_SRV/person4usSet`,
+            {
+                params: params,
+                headers: headers
+            }
+        )
 
         return data
     }

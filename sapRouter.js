@@ -87,6 +87,7 @@ router.post('/login', async (req, res, next) => {
     const tOut = req.body.timeout || req.query.timeout || 60
     const begda = req.body.begda || req.query.begda || '20200101'
     const endda = req.body.endda || req.query.endda || '20500101'
+
     if(!authorization){
         const auth = req.headers['authorization'] || ""
         const aAuth = auth.split(' ')
@@ -122,7 +123,6 @@ router.post('/login', async (req, res, next) => {
             const data = await db.getPerson()
             setDefaultParams(result, db)
             result.result = data
-
             Dashboards.push(db)
 
             res.json(result);
@@ -310,5 +310,81 @@ router.post('/endpointinfo', async(req,res) => {
 
 })
 
+router.get('/customizing', async(req,res) => {
+
+    const result = {
+        status: 400,
+        server: 'express',
+        router: 'sap',
+        method: 'get customizing',
+        msg: ""
+    }
+
+    const token = req.query.token || null
+
+    try{
+        const db = getDashboard(token)
+        const data = await db.getCustomizing()
+        result['result'] = data
+        result.status = 200
+        res.json(result);
+    }
+    catch(err){
+        result.msg = err.message
+        res.json(result);
+    }
+
+})
+
+router.get('/wsdl', async(req,res) => {
+
+    const result = {
+        status: 400,
+        server: 'express',
+        router: 'sap',
+        method: 'get wsdl',
+        msg: ""
+    }
+
+    const token = req.query.token || null
+
+    try{
+        const db = getDashboard(token)
+        const data = await db.getWSDL()
+        result['result'] = data
+        result.status = 200
+        res.json(result);
+    }
+    catch(err){
+        result.msg = err.message
+        res.json(result);
+    }
+
+})
+
+router.get('/person', async(req,res) => {
+
+    const result = {
+        status: 400,
+        server: 'express',
+        router: 'sap',
+        method: 'get person',
+        msg: ""
+    }
+
+    const token = req.query.token || null
+
+    try{
+        const db = getDashboard(token)
+        const data = await db.getPersonUI()
+        result['result'] = data
+        result.status = 200
+        res.json(result);
+    }
+    catch(err){
+        result.msg = err.message
+        res.json(result);
+    }
+})
 
 module.exports = router;
