@@ -1,7 +1,7 @@
 "use strict"
 const express = require("express");
 const router = express.Router();
-const SapDashboard = require("./sapDashboard")
+const SapDashboard = require("./sapDashboard");
 
 let Dashboards = []
 let isTimeoutOn = false;
@@ -37,9 +37,9 @@ function onTimeOut() {
     setTimeout(onTimeOut, timeOut);
 }
 
-function getDashboard(token = null) {
+function getDashboard(token = null, headers={}) {
 
-    const db = Dashboards.find(item => item.token === token)
+    var db = Dashboards.find(item => item.token === token)
 
     if (db) {
 
@@ -55,12 +55,27 @@ function getDashboard(token = null) {
         }
     }
     else {
-        throw new Error('user is not authorized', { status: 400 })
+
+        if ('authorization' in headers) {
+
+            const params = {}
+            const auth = headers['authorization'] || ""
+            const aAuth = auth.split(' ')
+            const authorization = aAuth[1]
+            params['authorization'] = authorization
+
+            db = SapDashboard.createInstance(params)
+            Dashboards.push(db)
+        }
+        else {
+            throw new Error('user is not authorized', { status: 400 })
+        }
+
     }
     return db;
 }
 
-function printParams(req,res){
+function printParams(req, res) {
 
     console.log('request')
     console.log('query')
@@ -88,7 +103,7 @@ router.post('/login', async (req, res, next) => {
     const begda = req.body.begda || req.query.begda || '20200101'
     const endda = req.body.endda || req.query.endda || '20500101'
 
-    if(!authorization){
+    if (!authorization) {
         const auth = req.headers['authorization'] || ""
         const aAuth = auth.split(' ')
         authorization = aAuth[1]
@@ -204,7 +219,7 @@ router.get('/sapuser', async (req, res, next) => {
 
         try {
 
-            const db = getDashboard(token)
+            const db = getDashboard(token, req.headers)
 
             const data = await db.getSapUsers()
             setDefaultParams(result, db)
@@ -245,7 +260,7 @@ router.get('/event', async (req, res, next) => {
 
         try {
 
-            const db = getDashboard(token)
+            const db = getDashboard(token, req.headers)
             var data = null
 
             if (objid) {
@@ -254,7 +269,7 @@ router.get('/event', async (req, res, next) => {
             }
             else {
                 data = await db.getEvents()
-                result.count = data["RESULTS"].length;
+                result.count = data['d']["results"].length;
             }
 
             setDefaultParams(result, db)
@@ -276,7 +291,7 @@ router.get('/event', async (req, res, next) => {
     }
 })
 
-router.post('/endpointinfo', async(req,res) => {
+router.post('/endpointinfo', async (req, res) => {
 
     const token = req.body.token || null
     const params = {}
@@ -292,17 +307,17 @@ router.post('/endpointinfo', async(req,res) => {
         method: 'set endpoint info',
         msg: ""
     }
-    
+
     delete params.token
 
-    try{
-        const db = getDashboard(token)
+    try {
+        const db = getDashboard(token, req.headers)
         await db.setSAPInfo(params)
-
+        setDefaultParams(result, db)
         result.status = 200
         res.json(result);
     }
-    catch(err){
+    catch (err) {
         result.msg = err.message
         result.status = 400
         res.json(result);
@@ -310,7 +325,7 @@ router.post('/endpointinfo', async(req,res) => {
 
 })
 
-router.get('/customizing', async(req,res) => {
+router.get('/customizing', async (req, res) => {
 
     const result = {
         status: 400,
@@ -320,23 +335,25 @@ router.get('/customizing', async(req,res) => {
         msg: ""
     }
 
+
     const token = req.query.token || null
 
-    try{
-        const db = getDashboard(token)
+    try {
+        const db = getDashboard(token, req.headers)
         const data = await db.getCustomizing()
+        setDefaultParams(result, db)
         result['result'] = data
         result.status = 200
         res.json(result);
     }
-    catch(err){
+    catch (err) {
         result.msg = err.message
         res.json(result);
     }
 
 })
 
-router.get('/wsdl', async(req,res) => {
+router.get('/wsdl', async (req, res) => {
 
     const result = {
         status: 400,
@@ -348,21 +365,22 @@ router.get('/wsdl', async(req,res) => {
 
     const token = req.query.token || null
 
-    try{
-        const db = getDashboard(token)
+    try {
+        const db = getDashboard(token, req.headers)
         const data = await db.getWSDL()
+        setDefaultParams(result, db)
         result['result'] = data
         result.status = 200
         res.json(result);
     }
-    catch(err){
+    catch (err) {
         result.msg = err.message
         res.json(result);
     }
 
 })
 
-router.get('/person', async(req,res) => {
+router.get('/person', async (req, res) => {
 
     const result = {
         status: 400,
@@ -374,14 +392,15 @@ router.get('/person', async(req,res) => {
 
     const token = req.query.token || null
 
-    try{
-        const db = getDashboard(token)
+    try {
+        const db = getDashboard(token, req.headers)
         const data = await db.getPersonUI()
+        setDefaultParams(result, db)
         result['result'] = data
         result.status = 200
         res.json(result);
     }
-    catch(err){
+    catch (err) {
         result.msg = err.message
         res.json(result);
     }

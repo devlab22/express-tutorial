@@ -1,6 +1,7 @@
 const axios = require("axios");
 const crypto = require("crypto")
 const xmlParser = require('xml2json')
+const soap = require('soap');
 
 class SapDashboard {
 
@@ -30,6 +31,11 @@ class SapDashboard {
         }
 
         this.checkParams()
+
+        const service = `lighth/bowservice/${this.sap_client}/bowline/bowservice`
+        this.WSDLUrl = `${this.baseUrl}/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/rfc/${service}`
+
+        // service = `lighth/bshservice/${this.sap_client}/bshservice/bshservbind`
 
         this.loginTime = SapDashboard.getDateTime(new Date())
         this.updateLastActionTime()
@@ -136,20 +142,27 @@ class SapDashboard {
         const headers = this.getHeaders();
         const params = this.getParams();
 
-        params.view = 'EVENTS'
-        params.begda = this.begda
-        params.endda = this.endda
-        params._FUNCTION = 'Z_EVENTS_MGR'
-        params.plvar = this.person.plvar
-        params.otype = this.person.otype
-        params.realo = this.person.realo
+        /*  params.view = 'EVENTS'
+         params.begda = this.begda
+         params.endda = this.endda
+         params._FUNCTION = 'Z_EVENTS_MGR'
+         params.plvar = this.person.plvar
+         params.otype = this.person.otype
+         params.realo = this.person.realo */
 
-        const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
-            {
-                params: params,
-                headers: headers
-            }
-        )
+        const filter = `otype eq '${this.person.otype}' and objid eq '${this.person.realo}' and begda eq '${this.begda}' and endda eq '${this.endda}' `
+
+        const { data } = await axios(`${this.baseUrl}/sap/opu/odata/LIGHTH/PARTIC_MANAGEMENT_SRV/eventSet?$filter=${filter}`, {
+            params: params,
+            headers: headers
+        })
+
+        /*  const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
+             {
+                 params: params,
+                 headers: headers
+             }
+         ) */
 
         return data
 
@@ -164,20 +177,27 @@ class SapDashboard {
         const headers = this.getHeaders();
         const params = this.getParams();
 
-        params.view = 'EVENT'
-        params.begda = this.begda
-        params.endda = this.endda
-        params._FUNCTION = 'Z_EVENTS_MGR'
-        params.plvar = this.person.plvar
-        params.otype = otype
-        params.objid = objid
+        const filter = `otype eq '${otype}' and objid eq '${objid}' `
 
-        const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
-            {
-                params: params,
-                headers: headers
-            }
-        )
+        const { data } = await axios(`${this.baseUrl}/sap/opu/odata/LIGHTH/PARTIC_MANAGEMENT_SRV/event_detailsSet?$filter=${filter}`, {
+            params: params,
+            headers: headers
+        })
+
+        /*  params.view = 'EVENT'
+         params.begda = this.begda
+         params.endda = this.endda
+         params._FUNCTION = 'Z_EVENTS_MGR'
+         params.plvar = this.person.plvar
+         params.otype = otype
+         params.objid = objid
+ 
+         const { data } = await axios(`${this.baseUrl}/sap/bc/webrfc`,
+             {
+                 params: params,
+                 headers: headers
+             }
+         ) */
 
         return data
 
@@ -209,7 +229,7 @@ class SapDashboard {
         this.person.org_objid = data['RESULTS']['ORG_OBJID']
         this.person.org_short = data['RESULTS']['ORG_SHORT']
         this.person.org_stext = data['RESULTS']['ORG_STEXT']
-        this.person.admin = data['RESULTS']['ADMIN'] == 'X' ? true : false
+        this.person.admin = data['RESULTS']['ADMIN'] === 'X' ? true : false
 
         return data
 
@@ -244,7 +264,7 @@ class SapDashboard {
         headers.Accept = 'text/xml'
         headers['Content-Type'] = 'text/xml'
 
-        const { data } = await axios(`${this.baseUrl}/sap/bc/srt/wsdl/flv_10002A1011D1/bndg_url/sap/bc/srt/rfc/lighth/bshservice/${this.sap_client}/bshservice/bshservbind`,
+        const { data } = await axios(`${this.WSDLUrl}`,
             {
                 headers: headers
             }
@@ -274,21 +294,50 @@ class SapDashboard {
 
         const headers = this.getHeaders();
 
-        headers.Accept = 'text/xml'
+        if (!this.WSDL) {
+            await this.getWSDL()
+        }
+
+        const location = this.getWSDLAttribute('location')
+
+
+        headers['Accept'] = 'text/xml'
         headers['Content-Type'] = 'text/xml'
+        headers['SoapAction'] = `${location}/getCustomizing`
+        headers['connection'] = 'keep-alive'
 
-        const params = {}
+       // console.log(location)
+       // console.log(headers)
+        var args = {name: 'getCustomizing'};
 
-        const { data } = await axios(`${this.baseUrl}/sap/bc/srt/rfc/lighth/bshservice/${this.sap_client}/bshservice/bshservbind/getCustomizingRequest`,
+        var client = await soap.createClientAsync(this.WSDLUrl,{
+            wsdl_headers: headers
+        })
+       // var result = await client.method(args, this.processData)
+       const res = client.setSOAPAction('getCustomizing')
+        console.log(res)
+        return []
+
+        /* const { data } = await axios(`${this.WSDLUrl}`,
             {
-                params: params,
                 headers: headers
             }
         )
 
         const result = xmlParser.toJson(data)
         const tmp = JSON.parse(result)
-        return tmp
+        return tmp */
+    }
+
+    async processData(args){
+
+        return new Promise((resolve) => {
+            // do some work
+            console.log(resolve)
+            resolve({
+              name: args.name
+            });
+          });
     }
 
     async getPersonUI() {
@@ -302,6 +351,19 @@ class SapDashboard {
                 headers: headers
             }
         )
+
+        if (data['d']['results'].length > 0) {
+
+            this.person.otype = data['d']['results'][0]['otype']
+            this.person.realo = data['d']['results'][0]['realo']
+            this.person.short = data['d']['results'][0]['short']
+            this.person.stext = data['d']['results'][0]['stext']
+            this.person.org_otype = data['d']['results'][0]['org_otype']
+            this.person.org_objid = data['d']['results'][0]['org_objid']
+            this.person.org_short = data['d']['results'][0]['org_short']
+            this.person.org_stext = data['d']['results'][0]['org_stext']
+            this.person.admin = data['d']['results'][0] === 'X' ? true : false
+        }
 
         return data
     }
