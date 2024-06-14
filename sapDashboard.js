@@ -247,14 +247,12 @@ class SapDashboard {
             params[key] = value
         }
 
-        const { data } = await axios({
-            method: 'post',
-            url: `${this.baseUrl}/sap/bc/webrfc`,
+        await axios(`${this.baseUrl}/sap/bc/webrfc`,{
             params: params,
             headers: headers
         })
 
-        return data
+        
     }
 
     async getWSDL() {
