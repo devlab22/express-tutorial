@@ -1,5 +1,6 @@
 {
     "BASE_URLS": ["http://lhd.lighthouse-it.de:8000"],
     "SAP_CLIENTS": ["005", "015"],
-    "TIMEOUT": 60
+    "TIMEOUT": 60,
+    "SETENDPOINTINFO": "Z_EVENTS_MGR"
 }

@@ -2,6 +2,9 @@ const axios = require("axios");
 const crypto = require("crypto")
 const xmlParser = require('xml2json')
 const soap = require('soap');
+const dirname = process.cwd();
+const fs = require('fs');
+const path = require("path");
 
 class SapDashboard {
 
@@ -28,6 +31,15 @@ class SapDashboard {
             org_short: '',
             org_stext: '',
             admin: false
+        }
+        this.config = {}
+
+        try {
+            const rawdata = fs.readFileSync(path.join(dirname, 'sapConfig.json'));
+            this.config = JSON.parse(rawdata);
+        }
+        catch (e) {
+            console.log(e.message)
         }
 
         this.checkParams()
@@ -61,8 +73,7 @@ class SapDashboard {
         }
 
         if (!this.baseUrl) {
-            this.baseUrl = "http://lhd.lighthouse-it.de:8000"
-            // throw new Error('set baseUrl', {status: 400})
+            this.baseUrl = this.config['BASE_URLS'][0] || null
         }
 
         const value = Buffer.from(this.authorization, 'base64').toString('ascii')
@@ -70,8 +81,15 @@ class SapDashboard {
         this.uname = values[0]
 
         if (!this.sap_client) {
-            this.sap_client = '005'
-            //throw new Error('set sap client', {status: 400})
+            this.sap_client = this.config['SAP_CLIENTS'][0] || null
+        }
+
+        if(!this.baseUrl){
+             throw new Error('set baseUrl', {status: 400})
+        }
+
+        if(!this.sap_client){
+            throw new Error('set sap client', {status: 400})
         }
 
         if (!this.begda) {
@@ -240,7 +258,8 @@ class SapDashboard {
         const headers = this.getHeaders();
         const params = this.getParams();
 
-        params._FUNCTION = 'Z_EVENTS_MGR'
+        params._FUNCTION = this.config['SETENDPOINTINFO']
+        //'Z_EVENTS_MGR'
         params.view = 'SET_ENDPOINTS_INFO'
 
         for (const [key, value] of Object.entries(payload)) {
